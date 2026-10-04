@@ -14,22 +14,109 @@ const DEFAULT_MENU = [
   { id: 12, name: "Water Bottle", category: "Drinks", price: 20, icon: "💧" }
 ];
 
-const $ = (id) => document.getElementById(id);
-let menu = loadMenu();
+const supabaseConfig = window.SUPABASE_CONFIG || {};
+const supabaseClient = window.supabase && supabaseConfig.url && supabaseConfig.publishableKey
+  ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.publishableKey)
+  : null;
 
-function loadMenu() {
+const $ = (id) => document.getElementById(id);
+let menu = [];
+
+function localMenu() {
   try {
     const saved = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY));
     if (Array.isArray(saved)) return saved;
   } catch (error) {
-    console.warn("Unable to load saved menu.", error);
+    console.warn("Unable to load saved local menu.", error);
   }
   localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(DEFAULT_MENU));
   return [...DEFAULT_MENU];
 }
 
-function saveMenu() {
+async function loadMenu() {
+  if (!supabaseClient) return localMenu();
+
+  const { data, error } = await supabaseClient
+    .from("menu_items")
+    .select("id,name,category,price,icon,is_active")
+    .order("name");
+
+  if (error) {
+    console.error("Supabase menu load failed. Falling back to local menu.", error);
+    return localMenu();
+  }
+
+  const remoteMenu = (data || []).filter((item) => item.is_active).map((item) => ({
+    ...item,
+    price: Number(item.price)
+  }));
+
+  localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(remoteMenu));
+  return remoteMenu;
+}
+
+function saveLocalMenu() {
   localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menu));
+}
+
+async function saveMenuItem(item) {
+  if (!supabaseClient) {
+    saveLocalMenu();
+    return true;
+  }
+
+  const payload = {
+    name: item.name,
+    category: item.category,
+    price: item.price,
+    icon: item.icon,
+    is_active: true
+  };
+
+  let result;
+  if (item.id) {
+    result = await supabaseClient
+      .from("menu_items")
+      .update(payload)
+      .eq("id", item.id)
+      .select("id,name,category,price,icon,is_active")
+      .single();
+  } else {
+    result = await supabaseClient
+      .from("menu_items")
+      .insert(payload)
+      .select("id,name,category,price,icon,is_active")
+      .single();
+  }
+
+  if (result.error) {
+    console.error("Supabase menu save failed.", result.error);
+    alert(`Unable to save menu item: ${result.error.message}`);
+    return false;
+  }
+
+  return true;
+}
+
+async function deleteMenuItem(id) {
+  if (!supabaseClient) {
+    menu = menu.filter((entry) => entry.id !== id);
+    saveLocalMenu();
+    return true;
+  }
+
+  const { error } = await supabaseClient
+    .from("menu_items")
+    .update({ is_active: false })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Supabase menu delete failed.", error);
+    alert(`Unable to delete menu item: ${error.message}`);
+    return false;
+  }
+
+  return true;
 }
 
 function escapeHtml(value) {
@@ -134,7 +221,7 @@ function closeModal() {
   $("itemModal").classList.add("hidden");
 }
 
-function saveItem(event) {
+async function saveItem(event) {
   event.preventDefault();
 
   const id = Number($("itemId").value);
@@ -148,21 +235,27 @@ function saveItem(event) {
     return;
   }
 
+  const item = { id: id || null, name, category, price, icon };
+  const saved = await saveMenuItem(item);
+  if (!saved) return;
+
   if (id) {
-    const item = menu.find((entry) => entry.id === id);
-    if (item) Object.assign(item, { name, category, price, icon });
+    const existing = menu.find((entry) => entry.id === id);
+    if (existing) Object.assign(existing, item);
+  } else if (supabaseClient) {
+    menu = await loadMenu();
   } else {
-    const nextId = menu.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1;
-    menu.push({ id: nextId, name, category, price, icon });
+    const nextId = menu.reduce((max, entry) => Math.max(max, Number(entry.id) || 0), 0) + 1;
+    menu.push({ ...item, id: nextId });
   }
 
-  saveMenu();
+  if (!supabaseClient) saveLocalMenu();
   renderFilters();
   renderTable();
   closeModal();
 }
 
-function deleteItem(id) {
+async function deleteItem(id) {
   const item = menu.find((entry) => entry.id === id);
   if (!item) return;
 
@@ -171,8 +264,18 @@ function deleteItem(id) {
   );
   if (!confirmed) return;
 
+  const deleted = await deleteMenuItem(id);
+  if (!deleted) return;
+
   menu = menu.filter((entry) => entry.id !== id);
-  saveMenu();
+  if (!supabaseClient) saveLocalMenu();
+  renderFilters();
+  renderTable();
+}
+
+async function initialize() {
+  $("menuTable").innerHTML = '<div class="empty-management"><strong>Loading menu...</strong><span>Connecting to the restaurant database.</span></div>';
+  menu = await loadMenu();
   renderFilters();
   renderTable();
 }
@@ -187,5 +290,4 @@ $("itemModal").addEventListener("click", (event) => {
   if (event.target === $("itemModal")) closeModal();
 });
 
-renderFilters();
-renderTable();
+initialize();
