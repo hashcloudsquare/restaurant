@@ -24,6 +24,7 @@ let menu = [];
 let cart = [];
 let activeCategory = "All";
 let invoiceSequence = Number(localStorage.getItem("restaurantInvoiceSequence") || "0");
+let invoiceSaved = false;
 
 const $ = (id) => document.getElementById(id);
 const money = (value) => new Intl.NumberFormat("en-IN", {
@@ -182,29 +183,99 @@ function renderCart() {
   $("generateInvoiceBtn").disabled = cart.length === 0;
 }
 
-function generateInvoice() {
-  if (!cart.length) return;
+async function saveInvoiceToSupabase(customer, subtotal, tax, total) {
+  if (!supabaseClient) {
+    throw new Error("Supabase is not configured. Invoice cannot be stored in the database.");
+  }
+
+  const { data: invoice, error: invoiceError } = await supabaseClient
+    .from("invoices")
+    .insert({
+      invoice_number: currentInvoiceNumber,
+      customer_name: customer,
+      subtotal,
+      tax,
+      total
+    })
+    .select("id,invoice_number,invoice_date")
+    .single();
+
+  if (invoiceError) {
+    throw invoiceError;
+  }
+
+  const invoiceItems = cart.map((item) => ({
+    invoice_id: invoice.id,
+    menu_item_id: item.id,
+    item_name: item.name,
+    quantity: item.qty,
+    unit_price: item.price,
+    line_total: Number((item.price * item.qty).toFixed(2))
+  }));
+
+  const { error: itemsError } = await supabaseClient
+    .from("invoice_items")
+    .insert(invoiceItems);
+
+  if (itemsError) {
+    await supabaseClient
+      .from("invoices")
+      .delete()
+      .eq("id", invoice.id);
+    throw itemsError;
+  }
+
+  return invoice;
+}
+
+async function generateInvoice() {
+  if (!cart.length || invoiceSaved) return;
+
   const { subtotal, tax, total } = totals();
   const customer = $("customerName").value.trim() || "Walk-in Customer";
+  const generateButton = $("generateInvoiceBtn");
 
-  $("printInvoiceNumber").textContent = currentInvoiceNumber;
-  $("invoiceDate").textContent = new Date().toLocaleString("en-IN", {
-    dateStyle: "medium", timeStyle: "short"
-  });
-  $("printCustomerName").textContent = customer;
-  $("invoiceLines").innerHTML = cart.map((item) => `
-    <tr><td>${escapeHtml(item.name)}</td><td>${item.qty}</td><td>${money(item.price)}</td><td>${money(item.price * item.qty)}</td></tr>
-  `).join("");
-  $("printSubtotal").textContent = money(subtotal);
-  $("printTax").textContent = money(tax);
-  $("printTotal").textContent = money(total);
-  $("invoiceModal").classList.remove("hidden");
+  generateButton.disabled = true;
+  generateButton.textContent = "Saving Invoice...";
+
+  try {
+    let invoiceDate = new Date();
+
+    if (supabaseClient) {
+      const invoice = await saveInvoiceToSupabase(customer, subtotal, tax, total);
+      invoiceDate = new Date(invoice.invoice_date);
+    } else {
+      throw new Error("Supabase is not configured. Please configure supabase-config.js before generating an invoice.");
+    }
+
+    invoiceSaved = true;
+
+    $("printInvoiceNumber").textContent = currentInvoiceNumber;
+    $("invoiceDate").textContent = invoiceDate.toLocaleString("en-IN", {
+      dateStyle: "medium", timeStyle: "short"
+    });
+    $("printCustomerName").textContent = customer;
+    $("invoiceLines").innerHTML = cart.map((item) => `
+      <tr><td>${escapeHtml(item.name)}</td><td>${item.qty}</td><td>${money(item.price)}</td><td>${money(item.price * item.qty)}</td></tr>
+    `).join("");
+    $("printSubtotal").textContent = money(subtotal);
+    $("printTax").textContent = money(tax);
+    $("printTotal").textContent = money(total);
+    $("invoiceModal").classList.remove("hidden");
+  } catch (error) {
+    console.error("Invoice save failed.", error);
+    alert(`Unable to save invoice: ${error.message}`);
+  } finally {
+    generateButton.textContent = "Generate Invoice";
+    renderCart();
+  }
 }
 
 function newBill() {
   cart = [];
   $("customerName").value = "";
   currentInvoiceNumber = nextInvoiceNumber();
+  invoiceSaved = false;
   $("invoiceNumber").textContent = currentInvoiceNumber;
   renderCart();
   $("invoiceModal").classList.add("hidden");
