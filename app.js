@@ -216,6 +216,32 @@ async function initialize() {
   renderCategories();
   renderMenu();
   renderCart();
+  subscribeToMenuChanges();
+}
+
+function subscribeToMenuChanges() {
+  if (!supabaseClient) return;
+
+  supabaseClient
+    .channel("restaurant-menu-billing")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "menu_items" },
+      async () => {
+        menu = await loadMenu();
+        renderCategories();
+        renderMenu();
+        cart = cart.filter((cartItem) =>
+          menu.some((menuItem) => menuItem.id === cartItem.id)
+        );
+        renderCart();
+      }
+    )
+    .subscribe((status) => {
+      if (status === "CHANNEL_ERROR") {
+        console.warn("Supabase Realtime menu subscription failed.");
+      }
+    });
 }
 
 $("searchInput").addEventListener("input", renderMenu);
