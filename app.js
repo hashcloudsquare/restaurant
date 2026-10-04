@@ -14,6 +14,8 @@ const DEFAULT_MENU = [
 ];
 
 const MENU_STORAGE_KEY = "restaurantMenu";
+const INVOICE_SEQUENCE_KEY = "restaurantInvoiceSequence";
+const CURRENT_INVOICE_KEY = "restaurantCurrentInvoiceNumber";
 const TAX_RATE = 0.05;
 const supabaseConfig = window.SUPABASE_CONFIG || {};
 const supabaseClient = window.supabase && supabaseConfig.url && supabaseConfig.publishableKey
@@ -23,7 +25,7 @@ const supabaseClient = window.supabase && supabaseConfig.url && supabaseConfig.p
 let menu = [];
 let cart = [];
 let activeCategory = "All";
-let invoiceSequence = Number(localStorage.getItem("restaurantInvoiceSequence") || "0");
+let invoiceSequence = Number(localStorage.getItem(INVOICE_SEQUENCE_KEY) || "0");
 let invoiceSaved = false;
 
 const $ = (id) => document.getElementById(id);
@@ -69,8 +71,25 @@ async function loadMenu() {
 
 function nextInvoiceNumber() {
   invoiceSequence += 1;
-  localStorage.setItem("restaurantInvoiceSequence", String(invoiceSequence));
-  return `INV-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${String(invoiceSequence).padStart(3, "0")}`;
+  localStorage.setItem(INVOICE_SEQUENCE_KEY, String(invoiceSequence));
+
+  const invoiceNumber = `INV-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${String(invoiceSequence).padStart(3, "0")}`;
+  localStorage.setItem(CURRENT_INVOICE_KEY, invoiceNumber);
+
+  return invoiceNumber;
+}
+
+function getCurrentInvoiceNumber() {
+  const savedInvoiceNumber = localStorage.getItem(CURRENT_INVOICE_KEY);
+
+  if (savedInvoiceNumber) {
+    const today = new Date().toISOString().slice(0, 10).replaceAll("-", "");
+    if (savedInvoiceNumber.startsWith(`INV-${today}-`)) {
+      return savedInvoiceNumber;
+    }
+  }
+
+  return nextInvoiceNumber();
 }
 
 function escapeHtml(value) {
@@ -82,7 +101,7 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-let currentInvoiceNumber = nextInvoiceNumber();
+let currentInvoiceNumber = getCurrentInvoiceNumber();
 $("invoiceNumber").textContent = currentInvoiceNumber;
 
 function renderCategories() {
