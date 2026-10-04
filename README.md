@@ -25,11 +25,12 @@ A lightweight browser-based restaurant billing application with menu management 
 - Search and filter menu items
 
 ### Supabase database
-- PostgreSQL-backed menu storage through Supabase
+- PostgreSQL-backed menu and invoice storage through Supabase
 - Supabase schema in `supabase/schema.sql`
 - Frontend configuration in `supabase-config.js`
 - LocalStorage fallback when Supabase is not configured or temporarily unavailable
 - Supabase Realtime synchronization for menu changes across open browser tabs/devices
+- Generated invoices stored in `invoices` with line items in `invoice_items`
 
 ## Configure Supabase
 
@@ -70,7 +71,8 @@ No build tools are required.
 3. Open `index.html` using VS Code Live Server.
 4. Use **Manage Menu** to maintain menu items.
 5. Return to **Back to Billing**.
-6. Select items and generate/print the invoice.
+6. Select items and click **Generate Invoice**. The invoice header and line items are saved to Supabase before the invoice preview opens.
+7. Use **Print Invoice** after the invoice has been saved.
 
 ## Roadmap
 
