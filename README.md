@@ -1,9 +1,10 @@
 # Restaurant POS & Invoice
 
-A lightweight browser-based restaurant billing application.
+A lightweight browser-based restaurant billing application with menu management.
 
 ## Features
 
+### Billing / POS
 - Menu with categories and food search
 - Add items to a cart
 - Increase/decrease item quantities
@@ -15,18 +16,32 @@ A lightweight browser-based restaurant billing application.
 - Responsive desktop and mobile layout
 - Print-friendly invoice styling
 
+### Menu Management
+- Dedicated **Menu Management** screen
+- Add new food items
+- Edit existing food items
+- Delete unwanted food items
+- Create new categories while adding an item
+- Search and filter menu items
+- Menu changes are saved in browser `localStorage`
+- Billing screen automatically reads the managed menu
+
 ## Run locally
 
 No build tools or backend are required.
 
 1. Clone the repository.
-2. Open `index.html` in a browser.
-3. Select menu items.
-4. Review the cart.
-5. Select **Generate Invoice**.
-6. Select **Print Invoice**.
+2. Open `index.html` in a browser, or use VS Code Live Server.
+3. Use **Manage Menu** from the billing screen to maintain the menu.
+4. Add/edit/delete items.
+5. Return to **Back to Billing**.
+6. Select menu items and generate the invoice.
 
-For a hosted version, enable GitHub Pages for the repository and use the `main` branch or the published feature branch as appropriate.
+### Browser storage
+
+The current MVP stores menu configuration and invoice numbering in `localStorage`.
+
+This is suitable for a local/demo version. For production use across multiple computers or users, move menu items, invoices and settings to a backend database.
 
 ## Product roadmap
 
@@ -35,15 +50,16 @@ For a hosted version, enable GitHub Pages for the repository and use the `main` 
 - Cart
 - Invoice
 - Printing
+- Menu administration
 
 ### Phase 2 — Restaurant operations
-- Menu administration
 - Invoice history
 - Daily sales report
 - Discounts
 - GST configuration
 - Table/order numbers
 - Kitchen order tickets
+- Payment methods: Cash / UPI / Card
 
 ### Phase 3 — Cloud product
 - User authentication
