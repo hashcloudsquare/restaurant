@@ -29,41 +29,19 @@ create table if not exists public.menu_item_history (
   created_at timestamptz not null default now()
 );
 
+-- If an older version of this table exists, run these statements once:
+-- alter table public.menu_item_history rename column action to operation;
+-- alter table public.menu_item_history add column name text;
+-- alter table public.menu_item_history add column category text;
+-- alter table public.menu_item_history add column price numeric(12,2);
+-- alter table public.menu_item_history add column icon text;
+-- alter table public.menu_item_history drop column old_price;
+-- alter table public.menu_item_history drop column new_price;
+-- alter table public.menu_item_history drop column old_is_active;
+-- alter table public.menu_item_history drop column new_is_active;
+
 create index if not exists menu_item_history_item_idx
   on public.menu_item_history (menu_item_id, created_at desc);
-
--- Upgrade an older version of menu_item_history if it was already created.
-do $
-begin
-  if exists (
-    select 1
-    from information_schema.columns
-    where table_schema = 'public'
-      and table_name = 'menu_item_history'
-      and column_name = 'action'
-  ) and not exists (
-    select 1
-    from information_schema.columns
-    where table_schema = 'public'
-      and table_name = 'menu_item_history'
-      and column_name = 'operation'
-  ) then
-    alter table public.menu_item_history rename column action to operation;
-  end if;
-end $;
-
-alter table public.menu_item_history
-  add column if not exists name text,
-  add column if not exists category text,
-  add column if not exists price numeric(12,2),
-  add column if not exists icon text;
-
-alter table public.menu_item_history
-  drop column if exists old_price,
-  drop column if exists new_price,
-  drop column if exists old_is_active,
-  drop column if exists new_is_active;
-
 
 alter table public.menu_item_history enable row level security;
 
