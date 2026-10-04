@@ -29,6 +29,7 @@ A lightweight browser-based restaurant billing application with menu management 
 - Supabase schema in `supabase/schema.sql`
 - Frontend configuration in `supabase-config.js`
 - LocalStorage fallback when Supabase is not configured or temporarily unavailable
+- Supabase Realtime synchronization for menu changes across open browser tabs/devices
 
 ## Configure Supabase
 
@@ -47,7 +48,8 @@ window.SUPABASE_CONFIG = {
 
 6. Open `index.html` with VS Code Live Server.
 7. Open **Manage Menu** and add/edit/delete an item.
-8. Refresh the billing page and verify the same menu is loaded from Supabase.
+8. Verify the change appears in the Supabase `menu_items` table.
+9. Keep the billing page open and verify menu changes are synchronized automatically through Supabase Realtime.
 
 ### Security
 
