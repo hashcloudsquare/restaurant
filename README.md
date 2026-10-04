@@ -1,6 +1,6 @@
 # Restaurant POS & Invoice
 
-A lightweight browser-based restaurant billing application with menu management.
+A lightweight browser-based restaurant billing application with menu management and optional Supabase persistence.
 
 ## Features
 
@@ -10,7 +10,7 @@ A lightweight browser-based restaurant billing application with menu management.
 - Increase/decrease item quantities
 - Automatic subtotal, 5% tax, and total calculation
 - Optional customer name
-- Sequential invoice numbers stored in browser local storage
+- Sequential invoice numbers
 - Invoice preview
 - Browser print support
 - Responsive desktop and mobile layout
@@ -20,30 +20,57 @@ A lightweight browser-based restaurant billing application with menu management.
 - Dedicated **Menu Management** screen
 - Add new food items
 - Edit existing food items
-- Delete unwanted food items
+- Soft-delete unwanted food items
 - Create new categories while adding an item
 - Search and filter menu items
-- Menu changes are saved in browser `localStorage`
-- Billing screen automatically reads the managed menu
+
+### Supabase database
+- PostgreSQL-backed menu storage through Supabase
+- Supabase schema in `supabase/schema.sql`
+- Frontend configuration in `supabase-config.js`
+- LocalStorage fallback when Supabase is not configured or temporarily unavailable
+
+## Configure Supabase
+
+1. Create a Supabase project.
+2. Open **SQL Editor** in your Supabase project.
+3. Run `supabase/schema.sql`.
+4. Open `supabase-config.js`.
+5. Set your project URL and **Publishable Key**:
+
+```javascript
+window.SUPABASE_CONFIG = {
+  url: "https://YOUR_PROJECT_REF.supabase.co",
+  publishableKey: "YOUR_SUPABASE_PUBLISHABLE_KEY"
+};
+```
+
+6. Open `index.html` with VS Code Live Server.
+7. Open **Manage Menu** and add/edit/delete an item.
+8. Refresh the billing page and verify the same menu is loaded from Supabase.
+
+### Security
+
+The current MVP schema contains public/anonymous menu policies because the static application does not have authentication yet. This is intended for development/demo use only.
+
+**Never put a Supabase service-role/secret key in the frontend.** Before production, add authentication and replace the anonymous RLS policies with policies scoped to the signed-in user/restaurant.
+
+## LocalStorage fallback
+
+If `supabase-config.js` contains empty values, the application continues to use browser LocalStorage. This keeps the existing local demo working while the database is being configured.
 
 ## Run locally
 
-No build tools or backend are required.
+No build tools are required.
 
 1. Clone the repository.
-2. Open `index.html` in a browser, or use VS Code Live Server.
-3. Use **Manage Menu** from the billing screen to maintain the menu.
-4. Add/edit/delete items.
+2. Configure `supabase-config.js` if database mode is required.
+3. Open `index.html` using VS Code Live Server.
+4. Use **Manage Menu** to maintain menu items.
 5. Return to **Back to Billing**.
-6. Select menu items and generate the invoice.
+6. Select items and generate/print the invoice.
 
-### Browser storage
-
-The current MVP stores menu configuration and invoice numbering in `localStorage`.
-
-This is suitable for a local/demo version. For production use across multiple computers or users, move menu items, invoices and settings to a backend database.
-
-## Product roadmap
+## Roadmap
 
 ### Phase 1 — Billing
 - Menu
@@ -68,11 +95,3 @@ This is suitable for a local/demo version. For production use across multiple co
 - Multi-device billing
 - Cloud invoice history
 - Backup and reporting
-
-## Authentication approach
-
-Authentication is intentionally not included in this first MVP. For a production multi-user version, use server-side authentication with short-lived access tokens/session cookies and keep secrets out of browser source code. Never store passwords or long-lived secrets in this static frontend.
-
-## License
-
-Add the project's preferred license before public production use.
