@@ -15,7 +15,12 @@ const DEFAULT_MENU = [
 
 const MENU_STORAGE_KEY = "restaurantMenu";
 const TAX_RATE = 0.05;
-let menu = loadMenu();
+const supabaseConfig = window.SUPABASE_CONFIG || {};
+const supabaseClient = window.supabase && supabaseConfig.url && supabaseConfig.publishableKey
+  ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.publishableKey)
+  : null;
+
+let menu = [];
 let cart = [];
 let activeCategory = "All";
 let invoiceSequence = Number(localStorage.getItem("restaurantInvoiceSequence") || "0");
@@ -25,15 +30,40 @@ const money = (value) => new Intl.NumberFormat("en-IN", {
   style: "currency", currency: "INR", minimumFractionDigits: 2
 }).format(value);
 
-function loadMenu() {
+function localMenu() {
   try {
     const saved = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY));
     if (Array.isArray(saved)) return saved;
   } catch (error) {
-    console.warn("Unable to load saved menu. Using default menu.", error);
+    console.warn("Unable to load saved local menu.", error);
   }
   localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(DEFAULT_MENU));
   return [...DEFAULT_MENU];
+}
+
+async function loadMenu() {
+  if (!supabaseClient) {
+    return localMenu();
+  }
+
+  const { data, error } = await supabaseClient
+    .from("menu_items")
+    .select("id,name,category,price,icon")
+    .eq("is_active", true)
+    .order("name");
+
+  if (error) {
+    console.error("Supabase menu load failed. Falling back to local menu.", error);
+    return localMenu();
+  }
+
+  const remoteMenu = (data || []).map((item) => ({
+    ...item,
+    price: Number(item.price)
+  }));
+
+  localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(remoteMenu));
+  return remoteMenu;
 }
 
 function nextInvoiceNumber() {
@@ -180,6 +210,14 @@ function newBill() {
   $("invoiceModal").classList.add("hidden");
 }
 
+async function initialize() {
+  $("menuGrid").innerHTML = '<div class="empty-cart"><strong>Loading menu...</strong><span>Connecting to the restaurant database.</span></div>';
+  menu = await loadMenu();
+  renderCategories();
+  renderMenu();
+  renderCart();
+}
+
 $("searchInput").addEventListener("input", renderMenu);
 $("generateInvoiceBtn").addEventListener("click", generateInvoice);
 $("printInvoiceBtn").addEventListener("click", () => window.print());
@@ -190,15 +228,13 @@ $("invoiceModal").addEventListener("click", (event) => {
   if (event.target === $("invoiceModal")) $("invoiceModal").classList.add("hidden");
 });
 
-window.addEventListener("storage", (event) => {
-  if (event.key !== MENU_STORAGE_KEY) return;
-  menu = loadMenu();
+window.addEventListener("storage", async (event) => {
+  if (event.key !== MENU_STORAGE_KEY || supabaseClient) return;
+  menu = localMenu();
   renderCategories();
   renderMenu();
   cart = cart.filter((cartItem) => menu.some((menuItem) => menuItem.id === cartItem.id));
   renderCart();
 });
 
-renderCategories();
-renderMenu();
-renderCart();
+initialize();
