@@ -278,6 +278,28 @@ async function initialize() {
   menu = await loadMenu();
   renderFilters();
   renderTable();
+  subscribeToMenuChanges();
+}
+
+function subscribeToMenuChanges() {
+  if (!supabaseClient) return;
+
+  supabaseClient
+    .channel("restaurant-menu-management")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "menu_items" },
+      async () => {
+        menu = await loadMenu();
+        renderFilters();
+        renderTable();
+      }
+    )
+    .subscribe((status) => {
+      if (status === "CHANNEL_ERROR") {
+        console.warn("Supabase Realtime menu subscription failed.");
+      }
+    });
 }
 
 $("addItemBtn").addEventListener("click", openAddItem);
