@@ -167,3 +167,152 @@ h2 { margin-bottom: 5px; font-size: 19px; }
   .invoice { border: 0; max-width: none; }
   @page { margin: 10mm; }
 }
+/* Collapsible left navigation */
+.app-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 238px;
+  background: #111827;
+  color: #fff;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 12px;
+  transition: width .22s ease, transform .22s ease;
+  box-shadow: 8px 0 24px rgba(15, 23, 42, .12);
+}
+.app-sidebar.collapsed { width: 70px; }
+.sidebar-brand {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 4px 8px 16px;
+  overflow: hidden;
+}
+.sidebar-logo {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: #111827;
+  border-radius: 11px;
+  font-size: 21px;
+}
+.sidebar-brand-text { display: grid; gap: 2px; white-space: nowrap; }
+.sidebar-brand-text strong { font-size: 14px; }
+.sidebar-brand-text span { color: #9ca3af; font-size: 11px; }
+.sidebar-toggle {
+  width: 100%;
+  border: 1px solid #374151;
+  background: #1f2937;
+  color: #fff;
+  border-radius: 9px;
+  min-height: 40px;
+  padding: 8px 11px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+.sidebar-toggle:hover { background: #273548; }
+.sidebar-toggle > span:first-child { font-size: 18px; line-height: 1; }
+.sidebar-toggle-text { font-size: 12px; }
+.sidebar-nav { display: grid; gap: 6px; }
+.sidebar-link {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 11px;
+  color: #cbd5e1;
+  text-decoration: none;
+  border-radius: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+}
+.sidebar-link:hover { background: #1f2937; color: #fff; }
+.sidebar-link.active { background: var(--accent); color: #fff; }
+.sidebar-icon {
+  width: 24px;
+  flex: 0 0 24px;
+  text-align: center;
+  font-size: 17px;
+}
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 10px;
+  color: #9ca3af;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.sidebar-footer-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+.app-sidebar.collapsed .sidebar-brand-text,
+.app-sidebar.collapsed .sidebar-toggle-text,
+.app-sidebar.collapsed .sidebar-link > span:last-child,
+.app-sidebar.collapsed .sidebar-footer > span:last-child { display: none; }
+.app-sidebar.collapsed .sidebar-brand,
+.app-sidebar.collapsed .sidebar-link,
+.app-sidebar.collapsed .sidebar-toggle,
+.app-sidebar.collapsed .sidebar-footer { justify-content: center; }
+.app-sidebar.collapsed .sidebar-brand { padding-left: 0; padding-right: 0; }
+.app-sidebar.collapsed .sidebar-toggle { padding-left: 0; padding-right: 0; }
+.app-sidebar.collapsed .sidebar-link { padding-left: 0; padding-right: 0; }
+.sidebar-overlay { display: none; }
+
+.topbar, .workspace, .dashboard-shell, .management-page {
+  margin-left: 238px;
+  transition: margin-left .22s ease;
+}
+body:not(.sidebar-expanded) .topbar,
+body:not(.sidebar-expanded) .workspace,
+body:not(.sidebar-expanded) .dashboard-shell,
+body:not(.sidebar-expanded) .management-page { margin-left: 70px; }
+
+@media (max-width: 760px) {
+  .app-sidebar {
+    width: 238px;
+    transform: translateX(-100%);
+  }
+  .app-sidebar.mobile-open { transform: translateX(0); }
+  .app-sidebar.collapsed { width: 238px; }
+  .app-sidebar.collapsed .sidebar-brand-text,
+  .app-sidebar.collapsed .sidebar-toggle-text,
+  .app-sidebar.collapsed .sidebar-link > span:last-child,
+  .app-sidebar.collapsed .sidebar-footer > span:last-child { display: initial; }
+  .app-sidebar.collapsed .sidebar-brand,
+  .app-sidebar.collapsed .sidebar-link,
+  .app-sidebar.collapsed .sidebar-toggle,
+  .app-sidebar.collapsed .sidebar-footer { justify-content: initial; }
+  .sidebar-overlay.visible {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .48);
+    z-index: 25;
+  }
+  .topbar, .workspace, .dashboard-shell, .management-page,
+  body:not(.sidebar-expanded) .topbar,
+  body:not(.sidebar-expanded) .workspace,
+  body:not(.sidebar-expanded) .dashboard-shell,
+  body:not(.sidebar-expanded) .management-page {
+    margin-left: 0;
+  }
+  .topbar { padding-left: 60px; }
+}
