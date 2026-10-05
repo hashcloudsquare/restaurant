@@ -14,3 +14,72 @@ drop policy if exists menu_read on public.menu_items;drop policy if exists menu_
 drop policy if exists history_read on public.menu_item_history;create policy history_read on public.menu_item_history for select to authenticated using(restaurant_id=public.current_restaurant_id());
 drop policy if exists invoice_read on public.invoices;drop policy if exists invoice_insert on public.invoices;drop policy if exists invoice_update on public.invoices;drop policy if exists invoice_delete on public.invoices;create policy invoice_read on public.invoices for select to authenticated using(restaurant_id=public.current_restaurant_id());create policy invoice_insert on public.invoices for insert to authenticated with check(restaurant_id=public.current_restaurant_id());create policy invoice_update on public.invoices for update to authenticated using(restaurant_id=public.current_restaurant_id()) with check(restaurant_id=public.current_restaurant_id());create policy invoice_delete on public.invoices for delete to authenticated using(restaurant_id=public.current_restaurant_id());
 drop policy if exists item_read on public.invoice_items;drop policy if exists item_insert on public.invoice_items;create policy item_read on public.invoice_items for select to authenticated using(restaurant_id=public.current_restaurant_id());create policy item_insert on public.invoice_items for insert to authenticated with check(restaurant_id=public.current_restaurant_id() and exists(select 1 from public.invoices i where i.id=invoice_id and i.restaurant_id=public.current_restaurant_id()));
+
+
+-- Tenant-isolation hardening: remove any legacy/permissive policies and recreate only member-scoped policies.
+DO $$
+DECLARE p record;
+BEGIN
+  FOR p IN
+    SELECT schemaname, tablename, policyname
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename IN ('restaurants','restaurant_members','menu_items','menu_item_history','invoices','invoice_items')
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', p.policyname, p.schemaname, p.tablename);
+  END LOOP;
+END $$;
+
+CREATE POLICY restaurant_member_read ON public.restaurants
+  FOR SELECT TO authenticated
+  USING (id = public.current_restaurant_id());
+
+CREATE POLICY restaurant_self_read ON public.restaurant_members
+  FOR SELECT TO authenticated
+  USING (user_id = auth.uid() AND is_active = true);
+
+CREATE POLICY menu_tenant_select ON public.menu_items
+  FOR SELECT TO authenticated
+  USING (restaurant_id = public.current_restaurant_id());
+CREATE POLICY menu_tenant_insert ON public.menu_items
+  FOR INSERT TO authenticated
+  WITH CHECK (restaurant_id = public.current_restaurant_id());
+CREATE POLICY menu_tenant_update ON public.menu_items
+  FOR UPDATE TO authenticated
+  USING (restaurant_id = public.current_restaurant_id())
+  WITH CHECK (restaurant_id = public.current_restaurant_id());
+CREATE POLICY menu_tenant_delete ON public.menu_items
+  FOR DELETE TO authenticated
+  USING (restaurant_id = public.current_restaurant_id());
+
+CREATE POLICY history_tenant_select ON public.menu_item_history
+  FOR SELECT TO authenticated
+  USING (restaurant_id = public.current_restaurant_id());
+
+CREATE POLICY invoice_tenant_select ON public.invoices
+  FOR SELECT TO authenticated
+  USING (restaurant_id = public.current_restaurant_id());
+CREATE POLICY invoice_tenant_insert ON public.invoices
+  FOR INSERT TO authenticated
+  WITH CHECK (restaurant_id = public.current_restaurant_id());
+CREATE POLICY invoice_tenant_update ON public.invoices
+  FOR UPDATE TO authenticated
+  USING (restaurant_id = public.current_restaurant_id())
+  WITH CHECK (restaurant_id = public.current_restaurant_id());
+CREATE POLICY invoice_tenant_delete ON public.invoices
+  FOR DELETE TO authenticated
+  USING (restaurant_id = public.current_restaurant_id());
+
+CREATE POLICY invoice_item_tenant_select ON public.invoice_items
+  FOR SELECT TO authenticated
+  USING (restaurant_id = public.current_restaurant_id());
+CREATE POLICY invoice_item_tenant_insert ON public.invoice_items
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    restaurant_id = public.current_restaurant_id()
+    AND EXISTS (
+      SELECT 1 FROM public.invoices i
+      WHERE i.id = invoice_id
+        AND i.restaurant_id = public.current_restaurant_id()
+    )
+  );
