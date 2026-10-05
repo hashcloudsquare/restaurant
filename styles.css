@@ -1,12 +1,12 @@
 :root {
-  --bg: #FFF8F0;
+  --bg: #F4FAFA;
   --surface: #ffffff;
   --surface-muted: #f8f9fb;
-  --text: #2B2523;
+  --text: #172B2D;
   --muted: #697586;
-  --border: #E8DDD3;
-  --accent: #7A1F2B;
-  --accent-dark: #54141D;
+  --border: #D8E5E6;
+  --accent: #007C83;
+  --accent-dark: #005B61;
   --success: #287A4B;
   --danger: #B42318;
   --shadow: 0 12px 30px rgba(16, 24, 40, 0.08);
@@ -41,7 +41,7 @@ h2 { margin-bottom: 5px; font-size: 19px; }
   padding: 11px 13px; outline: none;
 }
 .search-input { width: 230px; }
-.search-input:focus, .text-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(122, 31, 43, .12); }
+.search-input:focus, .text-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 124, 131, .12); }
 
 .category-tabs { display: flex; gap: 8px; overflow-x: auto; margin: 20px 0; padding-bottom: 2px; }
 .category-btn {
@@ -171,7 +171,7 @@ h2 { margin-bottom: 5px; font-size: 19px; }
   position: fixed;
   inset: 0 auto 0 0;
   width: 238px;
-  background: #7A1F2B;
+  background: #005B61;
   color: #fff;
   z-index: 30;
   display: flex;
@@ -205,8 +205,8 @@ h2 { margin-bottom: 5px; font-size: 19px; }
 .sidebar-brand-text span { color: #9ca3af; font-size: 11px; }
 .sidebar-toggle {
   width: 100%;
-  border: 1px solid #8F4D58;
-  background: #54141D;
+  border: 1px solid #2B8E93;
+  background: #005B61;
   color: #fff;
   border-radius: 9px;
   min-height: 40px;
@@ -227,7 +227,7 @@ h2 { margin-bottom: 5px; font-size: 19px; }
   display: flex;
   align-items: center;
   padding: 10px 14px;
-  color: #FFF8F0;
+  color: #F4FAFA;
   text-decoration: none;
   border-radius: 9px;
   white-space: nowrap;
