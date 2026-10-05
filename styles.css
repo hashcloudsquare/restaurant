@@ -206,7 +206,7 @@ h2 { margin-bottom: 5px; font-size: 19px; }
 .sidebar-toggle {
   width: 100%;
   border: 1px solid #2B8E93;
-  background: #005B61;
+  background: #007C83;
   color: #fff;
   border-radius: 9px;
   min-height: 40px;
@@ -217,8 +217,19 @@ h2 { margin-bottom: 5px; font-size: 19px; }
   cursor: pointer;
   font-weight: 700;
   margin-bottom: 18px;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
 }
-.sidebar-toggle:hover { background: #4D2342; }
+.sidebar-toggle:hover {
+  background: #D4A017;
+  border-color: #D4A017;
+  color: #172B2D;
+}
+
+.sidebar-toggle:focus-visible,
+.sidebar-link:focus-visible {
+  outline: 2px solid #D4A017;
+  outline-offset: 2px;
+}
 .sidebar-toggle > span:first-child { font-size: 18px; line-height: 1; }
 .sidebar-toggle-text { font-size: 12px; }
 .sidebar-nav { display: grid; gap: 6px; }
@@ -229,11 +240,24 @@ h2 { margin-bottom: 5px; font-size: 19px; }
   padding: 10px 14px;
   color: #F4FAFA;
   text-decoration: none;
+  border: 1px solid transparent;
   border-radius: 9px;
   white-space: nowrap;
   overflow: hidden;
   font-size: 13px;
   font-weight: 700;
+  transition: background .15s ease, color .15s ease, border-color .15s ease, transform .15s ease;
+}
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, .12);
+  border-color: rgba(212, 160, 23, .65);
+  color: #fff;
+  transform: translateX(2px);
+}
+.sidebar-link.active {
+  background: #007C83;
+  border-color: #2B8E93;
+  color: #fff;
 }
 .sidebar-footer {
   margin-top: auto;
