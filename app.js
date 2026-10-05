@@ -50,6 +50,7 @@ async function loadMenu() {
   const { data, error } = await supabaseClient
     .from("menu_items")
     .select("id,name,category,price,icon")
+    .eq("restaurant_id", window.RESTAURANT_ID)
     .eq("is_active", true)
     .order("name");
 
@@ -207,6 +208,7 @@ async function saveInvoiceToSupabase(customer, subtotal, tax, total) {
   const { data: invoice, error: invoiceError } = await supabaseClient
     .from("invoices")
     .insert({
+      restaurant_id: window.RESTAURANT_ID,
       invoice_number: currentInvoiceNumber,
       customer_name: customer,
       subtotal,
@@ -231,13 +233,14 @@ async function saveInvoiceToSupabase(customer, subtotal, tax, total) {
 
   const { error: itemsError } = await supabaseClient
     .from("invoice_items")
-    .insert(invoiceItems);
+    .insert(invoiceItems.map((item) => ({ ...item, restaurant_id: window.RESTAURANT_ID })));
 
   if (itemsError) {
     await supabaseClient
       .from("invoices")
       .delete()
-      .eq("id", invoice.id);
+      .eq("id", invoice.id)
+      .eq("restaurant_id", window.RESTAURANT_ID);
     throw itemsError;
   }
 
