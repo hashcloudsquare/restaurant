@@ -37,6 +37,7 @@ async function loadMenu() {
   const { data, error } = await supabaseClient
     .from("menu_items")
     .select("id,name,category,price,icon,is_active")
+    .eq("restaurant_id", window.RESTAURANT_ID)
     .order("name");
 
   if (error) {
@@ -64,6 +65,7 @@ async function saveMenuItem(item) {
   }
 
   const payload = {
+    restaurant_id: window.RESTAURANT_ID,
     name: item.name,
     category: item.category,
     price: item.price,
@@ -77,6 +79,7 @@ async function saveMenuItem(item) {
       .from("menu_items")
       .update(payload)
       .eq("id", item.id)
+      .eq("restaurant_id", window.RESTAURANT_ID)
       .select("id,name,category,price,icon,is_active")
       .single();
   } else {
