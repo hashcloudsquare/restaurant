@@ -362,4 +362,17 @@ body:not(.sidebar-expanded) .management-page { margin-left: 70px; }
 .sidebar-user small { color: #9ca3af; font-size: 9px; }
 .sidebar-logout { margin-left: auto; border: 1px solid rgba(255,255,255,.25); background: transparent; color: #fff; border-radius: 7px; padding: 5px 7px; cursor: pointer; font-size: 10px; font-weight: 700; }
 .sidebar-logout:hover { background: rgba(255,255,255,.12); }
-.app-sidebar.collapsed .sidebar-user, .app-sidebar.collapsed .sidebar-logout { display: none; }
+.app-sidebar.collapsed .sidebar-user { display: none; }
+.app-sidebar.collapsed .sidebar-logout {
+  margin-left: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  font-size: 18px;
+}
+.sidebar-logout-icon { display: inline; line-height: 1; }
+.sidebar-logout-text { display: inline; }
+.app-sidebar.collapsed .sidebar-logout-text { display: none; }
