@@ -18,9 +18,7 @@ const INVOICE_SEQUENCE_KEY = "restaurantInvoiceSequence";
 const CURRENT_INVOICE_KEY = "restaurantCurrentInvoiceNumber";
 const TAX_RATE = 0.05;
 const supabaseConfig = window.SUPABASE_CONFIG || {};
-const supabaseClient = window.supabase && supabaseConfig.url && supabaseConfig.publishableKey
-  ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.publishableKey)
-  : null;
+const supabaseClient = window.SUPABASE_CLIENT || null;
 
 let menu = [];
 let cart = [];
@@ -56,8 +54,8 @@ async function loadMenu() {
     .order("name");
 
   if (error) {
-    console.error("Supabase menu load failed. Falling back to local menu.", error);
-    return localMenu();
+    console.error("Supabase menu load failed.", error);
+    return [];
   }
 
   const remoteMenu = (data || []).map((item) => ({
@@ -352,4 +350,11 @@ window.addEventListener("storage", async (event) => {
   renderCart();
 });
 
-initialize();
+window.restaurantAuthReady
+  .then((session) => {
+    if (session) initialize();
+  })
+  .catch((error) => {
+    console.error("Authentication initialization failed.", error);
+    alert(error.message || "Unable to initialize authentication.");
+  });
