@@ -134,7 +134,6 @@ function renderMenu() {
   $("menuGrid").innerHTML = items.length
     ? items.map((item) => `
       <button class="menu-card" data-id="${item.id}" type="button">
-        <div class="food-icon">${escapeHtml(item.icon)}</div>
         <h3>${escapeHtml(item.name)}</h3>
         <div class="category">${escapeHtml(item.category)}</div>
         <div class="price">${money(item.price)}</div>
