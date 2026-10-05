@@ -44,7 +44,15 @@ function initSidebar() {
   sidebarOverlay?.addEventListener("click", closeMobileSidebar);
 
   sidebar.querySelectorAll(".sidebar-link").forEach((link) => {
-    link.addEventListener("click", closeMobileSidebar);
+    link.addEventListener("click", () => {
+      if (window.matchMedia("(max-width: 760px)").matches) {
+        closeMobileSidebar();
+        return;
+      }
+
+      // Collapse the sidebar after navigating to another component.
+      setSidebarState(false);
+    });
   });
 
   window.addEventListener("resize", () => {
