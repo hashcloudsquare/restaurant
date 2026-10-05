@@ -15,9 +15,7 @@ const DEFAULT_MENU = [
 ];
 
 const supabaseConfig = window.SUPABASE_CONFIG || {};
-const supabaseClient = window.supabase && supabaseConfig.url && supabaseConfig.publishableKey
-  ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.publishableKey)
-  : null;
+const supabaseClient = window.SUPABASE_CLIENT || null;
 
 const $ = (id) => document.getElementById(id);
 let menu = [];
@@ -42,8 +40,8 @@ async function loadMenu() {
     .order("name");
 
   if (error) {
-    console.error("Supabase menu load failed. Falling back to local menu.", error);
-    return localMenu();
+    console.error("Supabase menu load failed.", error);
+    return [];
   }
 
   const remoteMenu = (data || []).filter((item) => item.is_active).map((item) => ({
@@ -312,4 +310,11 @@ $("itemModal").addEventListener("click", (event) => {
   if (event.target === $("itemModal")) closeModal();
 });
 
-initialize();
+window.restaurantAuthReady
+  .then((session) => {
+    if (session) initialize();
+  })
+  .catch((error) => {
+    console.error("Authentication initialization failed.", error);
+    alert(error.message || "Unable to initialize authentication.");
+  });
