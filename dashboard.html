@@ -11,6 +11,32 @@
   </style>
 </head>
 <body>
+  <aside id="appSidebar" class="app-sidebar" aria-label="Main navigation">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">🍽️</div>
+    <div class="sidebar-brand-text">
+      <strong>Restaurant POS</strong>
+      <span>Billing System</span>
+    </div>
+  </div>
+
+  <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-label="Collapse navigation">
+    <span>☰</span>
+    <span class="sidebar-toggle-text">Collapse</span>
+  </button>
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-link" href="index.html"><span class="sidebar-icon">🧾</span><span>Billing</span></a>
+    <a class="sidebar-link" href="dashboard.html"><span class="sidebar-icon">📊</span><span>Dashboard</span></a>
+    <a class="sidebar-link" href="menu.html"><span class="sidebar-icon">🍴</span><span>Manage Menu</span></a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <span class="sidebar-footer-dot"></span>
+    <span>POS Online</span>
+  </div>
+</aside>
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
   <div class="dashboard-shell">
     <header class="dashboard-header">
       <div>
@@ -24,7 +50,6 @@
           <option value="7">Last 7 days</option>
           <option value="30">Last 30 days</option>
         </select>
-        <a class="secondary-btn nav-btn" href="index.html">Billing</a>
       </div>
     </header>
 
@@ -62,6 +87,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
+  <script src="sidebar.js"></script>
   <script src="dashboard.js"></script>
 </body>
 </html>
